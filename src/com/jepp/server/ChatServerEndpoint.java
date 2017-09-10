@@ -3,6 +3,7 @@ package com.jepp.server;
 import java.io.IOException;
 
 import javax.websocket.OnClose;
+import javax.websocket.OnError;
 import javax.websocket.OnMessage;
 import javax.websocket.OnOpen;
 import javax.websocket.Session;
@@ -35,5 +36,10 @@ public class ChatServerEndpoint {
 	@OnClose
 	public void onClose(Session session) {
 		System.out.println("Session " + session.getId() + " has ended");
+	}
+	
+	@OnError
+	public void onError(Throwable error) {
+		System.out.println("Error occurs: " + error.getMessage());
 	}
 }
