@@ -31,8 +31,9 @@ public class ChatSessionHandler {
 		return new ArrayList<>(this.people);
 	}
 
-	public void addPerson(Person person) {
+	public void addPerson(Session session, Person person) {
 		this.people.add(person);
+		this.sendToSession(session, this.identifyMessage(person));
 
 		JSONObject payload = this.addPersonMessage(person);
 		this.sendToAllConnectedSessions(payload);
@@ -59,6 +60,13 @@ public class ChatSessionHandler {
 		return null;
 	}
 
+	public JSONObject identifyMessage(Person person) {
+		JSONObject object = new JSONObject();
+		object.append("action", "identify");
+		object.append("id", person.getId());
+		return object;
+	}
+	
 	public JSONObject addPersonMessage(Person person) {
 		JSONObject object = new JSONObject();
 		object.append("action", "addPerson");

@@ -19,7 +19,7 @@ import com.jepp.objects.Person;
 public class ChatServerEndpoint {
 	
 	@Inject
-	private ChatSessionHandler sessionHandler;
+	private ChatSessionHandler sessionHandler = new ChatSessionHandler();
 
 	@OnOpen
 	public void onOpen(Session session) {
@@ -33,7 +33,7 @@ public class ChatServerEndpoint {
 			Person person = new Person();
 			person.setId(session.getId());
 			person.setNickname(jsonMessage.getString("nickName"));
-            this.sessionHandler.addPerson(person);
+            this.sessionHandler.addPerson(session, person);
         }
 
         if ("signout".equals(jsonMessage.getString("action"))) {

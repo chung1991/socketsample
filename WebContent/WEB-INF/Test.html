@@ -1,254 +1,223 @@
-<!DOCTYPE html>
-<html>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
 <head>
-<title></title>
-<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-<script src="websocket.js"></script>
-<link rel="stylesheet" type="text/css" href="style.css">
-</head>
+<title>Chat - Customer Module</title>
 <style>
+/* CSS Document */
 body {
-	font-family: Arial, Helvetica, sans-serif;
-	font-size: 80%;
-	background-color: #1f1f1f;
+	font: 12px arial;
+	color: #222;
+	text-align: center;
+	padding: 35px;
 }
 
-#wrapper {
-	width: 960px;
-	margin: auto;
-	text-align: left;
-	color: #d9d9d9;
+form, p, span {
+	margin: 0;
+	padding: 0;
 }
 
-p {
-	text-align: left;
+input {
+	font: 12px arial;
 }
 
-.button {
-	display: inline;
-	color: #fff;
-	background-color: #f2791d;
-	padding: 8px;
-	margin: auto;
-	border-radius: 8px;
-	-moz-border-radius: 8px;
-	-webkit-border-radius: 8px;
-	box-shadow: none;
-	border: none;
-}
-
-.button:hover {
-	background-color: #ffb15e;
-}
-
-.button a, a:visited, a:hover, a:active {
-	color: #fff;
+a {
+	color: #0000FF;
 	text-decoration: none;
 }
 
-#addDevice {
-	text-align: center;
-	width: 960px;
-	margin: auto;
-	margin-bottom: 10px;
-}
-
-#addDeviceForm {
-	text-align: left;
-	width: 400px;
-	margin: auto;
-	padding: 10px;
-}
-
-#addDeviceForm span {
-	display: block;
-}
-
-#content {
-	margin: auto;
-	width: 960px;
-}
-
-.device {
-	width: 180px;
-	height: 110px;
-	margin: 10px;
-	padding: 16px;
-	color: #fff;
-	vertical-align: top;
-	border-radius: 8px;
-	-moz-border-radius: 8px;
-	-webkit-border-radius: 8px;
-	display: inline-block;
-}
-
-.device.off {
-	background-color: #c8cccf;
-}
-
-.device span {
-	display: block;
-}
-
-.deviceName {
-	text-align: center;
-	font-weight: bold;
-	margin-bottom: 12px;
-}
-
-.removeDevice {
-	margin-top: 12px;
-	text-align: center;
-}
-
-.device.Appliance {
-	background-color: #5eb85e;
-}
-
-.device.Appliance a:hover {
-	color: #a1ed82;
-}
-
-.device.Electronics {
-	background-color: #0f90d1;
-}
-
-.device.Electronics a:hover {
-	color: #4badd1;
-}
-
-.device.Lights {
-	background-color: #c2a00c;
-}
-
-.device.Lights a:hover {
-	color: #fad232;
-}
-
-.device.Other {
-	background-color: #db524d;
-}
-
-.device.Other a:hover {
-	color: #ff907d;
-}
-
-.device a {
-	text-decoration: none;
-}
-
-.device a:visited, a:active, a:hover {
-	color: #fff;
-}
-
-.device a:hover {
+a:hover {
 	text-decoration: underline;
+}
+
+#wrapper, #loginform {
+	margin: 0 auto;
+	padding-bottom: 25px;
+	background: #EBF4FB;
+	width: 504px;
+	border: 1px solid #ACD8F0;
+}
+
+#loginform {
+	padding-top: 18px;
+}
+
+#loginform p {
+	margin: 5px;
+}
+
+#chatbox {
+	text-align: left;
+	margin: 0 auto;
+	margin-bottom: 25px;
+	padding: 10px;
+	background: #fff;
+	height: 270px;
+	width: 430px;
+	border: 1px solid #ACD8F0;
+	overflow: auto;
+}
+
+#usermsg {
+	width: 395px;
+	border: 1px solid #ACD8F0;
+}
+
+#submit {
+	width: 60px;
+}
+
+.error {
+	color: #ff0000;
+}
+
+#menu {
+	padding: 12.5px 25px 12.5px 25px;
+}
+
+.welcome {
+	float: left;
+}
+
+.logout {
+	float: right;
+}
+
+.msgln {
+	margin: 0 0 2px 0;
 }
 </style>
 
-<script>
-window.onload = init;
-var socket = new WebSocket("ws://localhost:8080/WebSocketServer/chat");
-socket.onmessage = onMessage;
+<script type="text/javascript"
+	src="http://ajax.googleapis.com/ajax/libs/jquery/1.3/jquery.min.js"></script>
+<script type="text/javascript">
+	// init an user
+	var currentUser = new Object();
+	currentUser.nickName = makeid();
+	// global var
+	var socket;
 
-function onMessage(event) {
-    var device = JSON.parse(event.data);
-    if (device.action === "addPerson") {
-        printDeviceElement(device);
-    }
-    if (device.action === "deletePerson") {
-        document.getElementById(device.id).remove();
-        //device.parentNode.removeChild(device);
-    }
-    if (device.action === "newChat") {
-        
-    }
-}
+	function makeid() {
+		var text = "";
+		var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
 
-function signin(name) {
-    var payload = {
-        action: "signin",
-        nickName: name
-    };
-    socket.send(JSON.stringify(payload));
-}
+		for (var i = 0; i < 5; i++)
+			text += possible
+					.charAt(Math.floor(Math.random() * possible.length));
 
-var currentUser = null;
+		return text;
+	}
 
-function signout() {
-    var payload = {
-        action: "signout",
-        id: currentUser.id
-    };
-    socket.send(JSON.stringify(payload));
-}
+	function signin() {
+		var payload = {
+			action : "signin",
+			nickName : currentUser.nickName
+		};
+		socket.send(JSON.stringify(payload));
+	}
 
-function printDeviceElement(device) {
-    var content = document.getElementById("content");
-    
-    var deviceDiv = document.createElement("div");
-    content.appendChild(deviceDiv);
+	function onOpen(evt) {
+		console.log(evt);
+		signin();
+	}
 
-    var deviceName = document.createElement("span");
-    deviceName.innerHTML = device.nickName;
-    deviceDiv.appendChild(deviceName);
+	function onError(evt) {
+	}
 
-    deviceDiv.appendChild(deviceStatus);
-}
+	function onMessage(event) {
+		var msg = JSON.parse(event.data);
+		if (msg.action == "identify") {
+			currentUser.id = msg.id;
+			alert(currentUser.id);
+		}
+		if (msg.action == "addPerson") {
+		}
+		if (msg.action == "deletePerson") {
+		}
+		if (msg.action == "newChat") {
+		}
+	}
 
-function showForm() {
-    document.getElementById("addDeviceForm").style.display = '';
-}
+	$(document).ready(function() {
+		socket = new WebSocket("ws://localhost:8080/WebSocketServer/chat");
+		socket.onmessage = onMessage;
+		socket.onopen = onOpen
+		
+		// if do not signed yet, do not enable sign in
+		$("form input").attr("disabled", true);
 
-function hideForm() {
-    document.getElementById("addDeviceForm").style.display = "none";
-}
+		/* function onMessage(event) {
+			var device = JSON.parse(event.data);
+			if (device.action === "addPerson") {
+			}
+			if (device.action === "deletePerson") {
+			}
+			if (device.action === "newChat") {
+			}
+		}
 
-function formSubmit() {
-    var form = document.getElementById("addDeviceForm");
-    var name = form.elements["device_name"].value;
-    hideForm();
-    document.getElementById("addDeviceForm").reset();
-    signin(name);
-}
+		var currentUser = null;
 
-function init() {
-    hideForm();
-}
+		function signout() {
+			var payload = {
+				action : "signout",
+				id : currentUser.id
+			};
+			socket.send(JSON.stringify(payload));
+		}
 
+		function printDeviceElement(device) {
+			var content = document.getElementById("content");
+
+			var deviceDiv = document.createElement("div");
+			content.appendChild(deviceDiv);
+
+			var deviceName = document.createElement("span");
+			deviceName.innerHTML = device.nickName;
+			deviceDiv.appendChild(deviceName);
+
+			deviceDiv.appendChild(deviceStatus);
+		}
+
+		function showForm() {
+			document.getElementById("addDeviceForm").style.display = '';
+		}
+
+		function hideForm() {
+			document.getElementById("addDeviceForm").style.display = "none";
+		}
+
+		function formSubmit() {
+			var form = document.getElementById("addDeviceForm");
+			var name = form.elements["device_name"].value;
+			hideForm();
+			document.getElementById("addDeviceForm").reset();
+			signin(name);
+		}
+
+		function init() {
+			hideForm();
+		} */
+	});
 </script>
-
+</head>
 <body>
-
 	<div id="wrapper">
-		<h1>Java Websocket Home</h1>
-		<p>Welcome to the Java WebSocket Home. Click the Add a device
-			button to start adding devices.</p>
-		<br />
-		<div id="addDevice">
-			<div class="button">
-				<a href="#" OnClick="showForm()">Add a device</a>
-			</div>
-			<form id="addDeviceForm">
-				<h3>Add a new device</h3>
-				<span>Name: <input type="text" name="device_name"
-					id="device_name"></span> <span>Type: <select
-					id="device_type">
-						<option name="type" value="Appliance">Appliance</option>
-						<option name="type" value="Electronics">Electronics</option>
-						<option name="type" value="Lights">Lights</option>
-						<option name="type" value="Other">Other</option>
-				</select></span> <span>Description:<br /> <textarea name="description"
-						id="device_description" rows="2" cols="50"></textarea>
-				</span> <input type="button" class="button" value="Add"
-					onclick=formSubmit()> <input type="reset" class="button"
-					value="Cancel" onclick=hideForm()>
-			</form>
+		<div id="menu">
+			<p class="welcome">
+				Welcome, <b></b>
+			</p>
+			<p class="logout">
+				<a id="exit" href="#">Exit Chat</a>
+			</p>
+			<div style="clear: both"></div>
 		</div>
-		<br />
-		<h3>Currently connected devices:</h3>
-		<div id="content"></div>
-	</div>
 
+		<div id="chatbox"></div>
+
+		<form name="message" action="">
+			<input name="usermsg" type="text" id="usermsg" size="63" /> <input
+				name="submitmsg" type="submit" id="submitmsg" value="Send" />
+		</form>
+	</div>
 </body>
 </html>
