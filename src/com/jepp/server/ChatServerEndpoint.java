@@ -19,11 +19,11 @@ import com.jepp.objects.Person;
 public class ChatServerEndpoint {
 	
 	@Inject
-	private ChatSessionHandler sessionHandler = new ChatSessionHandler();
+	static private ChatSessionHandler sessionHandler = new ChatSessionHandler();
 
 	@OnOpen
 	public void onOpen(Session session) {
-		this.sessionHandler.addSession(session);
+		sessionHandler.addSession(session);
 	}
 
 	@OnMessage
@@ -33,24 +33,24 @@ public class ChatServerEndpoint {
 			Person person = new Person();
 			person.setId(session.getId());
 			person.setNickname(jsonMessage.getString("nickName"));
-            this.sessionHandler.addPerson(session, person);
+            sessionHandler.addPerson(session, person);
         }
 
         if ("signout".equals(jsonMessage.getString("action"))) {
             String id = jsonMessage.getString("id");
-            this.sessionHandler.removePerson(id);
+            sessionHandler.removePerson(id);
         }
         
         if ("message".equals(jsonMessage.getString("action"))) {
             String content = jsonMessage.getString("message");
             String id = jsonMessage.getString("id");
-            this.sessionHandler.addMessage(id, content);
+            sessionHandler.addMessage(id, content);
         }
 	}
 
 	@OnClose
 	public void onClose(Session session) {
-		this.sessionHandler.removeSession(session);
+		sessionHandler.removeSession(session);
 	}
 	
 	@OnError

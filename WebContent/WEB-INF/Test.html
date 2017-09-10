@@ -93,6 +93,9 @@ a:hover {
 	// init an user
 	var currentUser = new Object();
 	currentUser.nickName = makeid();
+	
+	var friends = {};
+	
 	// global var
 	var socket;
 
@@ -116,7 +119,6 @@ a:hover {
 	}
 
 	function onOpen(evt) {
-		console.log(evt);
 		signin();
 	}
 
@@ -127,13 +129,56 @@ a:hover {
 		var msg = JSON.parse(event.data);
 		if (msg.action == "identify") {
 			currentUser.id = msg.id;
-			alert(currentUser.id);
+			
+			// signed, enable chat, and set the nick name
+			$("form input").attr("disabled", false);
+			$("#nickName").html(currentUser.nickName);
+			
+			// add all existed people
+			for (var id in msg.people) {
+				var person = msg.people[id];
+				var friend = new Object();
+				friend.id = person.id
+				friend.nickName = person.nickname;
+				friends[friend.id] = friend;
+			}
 		}
+		
 		if (msg.action == "addPerson") {
+			if (msg.id != currentUser.id) {
+				var friend = new Object();
+				friend.id = msg.id;
+				friend.nickName = msg.nickName;
+				friends[friend.id] = friend;
+				
+				$("#chatbox").append("<p><i>" + new Date().toGMTString() + ": " + friend.nickName + " has joined</i></p>" );
+			}
 		}
+		
 		if (msg.action == "deletePerson") {
+			if (msg.id != currentUser.id) {
+				var deletedFriend = friends[msg.id];
+				delete friends[msg.id];
+				
+				if (deletedFriend) {
+					$("#chatbox").append("<p><i>" + new Date().toGMTString() + ": " + deletedFriend.nickName + " has left</i></p>" );
+				}
+			}
 		}
+		
 		if (msg.action == "newChat") {
+			var displayName = "You";
+			if (msg.id != currentUser.id) {
+				var friend = friends[msg.id];
+				if (friend) {
+					displayName	= friend.nickName;
+				} else {
+					return;
+				}
+				
+			} 
+				
+			$("#chatbox").append("<p>" + new Date().toGMTString() + ": <b>" + displayName + "</b>: " + msg.message + "</p>" );
 		}
 	}
 
@@ -141,62 +186,23 @@ a:hover {
 		socket = new WebSocket("ws://localhost:8080/WebSocketServer/chat");
 		socket.onmessage = onMessage;
 		socket.onopen = onOpen
-		
+
 		// if do not signed yet, do not enable sign in
 		$("form input").attr("disabled", true);
 
-		/* function onMessage(event) {
-			var device = JSON.parse(event.data);
-			if (device.action === "addPerson") {
-			}
-			if (device.action === "deletePerson") {
-			}
-			if (device.action === "newChat") {
-			}
-		}
+		$("#chatForm").submit(function(event) {
+			event.preventDefault();
 
-		var currentUser = null;
-
-		function signout() {
 			var payload = {
-				action : "signout",
+				action : "message",
+				message : $("#usermsg").val(),
 				id : currentUser.id
 			};
+			
 			socket.send(JSON.stringify(payload));
-		}
-
-		function printDeviceElement(device) {
-			var content = document.getElementById("content");
-
-			var deviceDiv = document.createElement("div");
-			content.appendChild(deviceDiv);
-
-			var deviceName = document.createElement("span");
-			deviceName.innerHTML = device.nickName;
-			deviceDiv.appendChild(deviceName);
-
-			deviceDiv.appendChild(deviceStatus);
-		}
-
-		function showForm() {
-			document.getElementById("addDeviceForm").style.display = '';
-		}
-
-		function hideForm() {
-			document.getElementById("addDeviceForm").style.display = "none";
-		}
-
-		function formSubmit() {
-			var form = document.getElementById("addDeviceForm");
-			var name = form.elements["device_name"].value;
-			hideForm();
-			document.getElementById("addDeviceForm").reset();
-			signin(name);
-		}
-
-		function init() {
-			hideForm();
-		} */
+			
+			$("#usermsg").val("");
+		});
 	});
 </script>
 </head>
@@ -204,7 +210,7 @@ a:hover {
 	<div id="wrapper">
 		<div id="menu">
 			<p class="welcome">
-				Welcome, <b></b>
+				Welcome, <span id="nickName"></span><b></b>
 			</p>
 			<p class="logout">
 				<a id="exit" href="#">Exit Chat</a>
@@ -214,7 +220,7 @@ a:hover {
 
 		<div id="chatbox"></div>
 
-		<form name="message" action="">
+		<form id="chatForm" name="message" action="">
 			<input name="usermsg" type="text" id="usermsg" size="63" /> <input
 				name="submitmsg" type="submit" id="submitmsg" value="Send" />
 		</form>

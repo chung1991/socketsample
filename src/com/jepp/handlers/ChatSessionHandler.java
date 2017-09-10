@@ -62,31 +62,32 @@ public class ChatSessionHandler {
 
 	public JSONObject identifyMessage(Person person) {
 		JSONObject object = new JSONObject();
-		object.append("action", "identify");
-		object.append("id", person.getId());
+		object.put("action", "identify");
+		object.put("id", person.getId());
+		object.put("people", this.people);
 		return object;
 	}
 	
 	public JSONObject addPersonMessage(Person person) {
 		JSONObject object = new JSONObject();
-		object.append("action", "addPerson");
-		object.append("nickName", person.getNickname());
-		object.append("id", person.getId());
+		object.put("action", "addPerson");
+		object.put("nickName", person.getNickname());
+		object.put("id", person.getId());
 		return object;
 	}
 	
 	public JSONObject deletePersonMessage(Person person) {
 		JSONObject object = new JSONObject();
-		object.append("action", "deletePerson");
-		object.append("id", person.getId());
+		object.put("action", "deletePerson");
+		object.put("id", person.getId());
 		return object;
 	}
 	
 	public JSONObject newChatMessage(String personId, String message) {
 		JSONObject object = new JSONObject();
-		object.append("action", "newChat");
-		object.append("id", personId);
-		object.append("message", message);
+		object.put("action", "newChat");
+		object.put("id", personId);
+		object.put("message", message);
 		return object;
 	}
 
