@@ -1,41 +1,56 @@
 package com.jepp.server;
 
-import java.io.IOException;
-
+import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
 import javax.websocket.OnClose;
 import javax.websocket.OnError;
 import javax.websocket.OnMessage;
 import javax.websocket.OnOpen;
 import javax.websocket.Session;
-
 import javax.websocket.server.ServerEndpoint;
 
-@ServerEndpoint("/echo")
+import org.json.JSONObject;
+
+import com.jepp.handlers.ChatSessionHandler;
+import com.jepp.objects.Person;
+
+@ApplicationScoped
+@ServerEndpoint("/chat")
 public class ChatServerEndpoint {
+	
+	@Inject
+	private ChatSessionHandler sessionHandler;
 
 	@OnOpen
 	public void onOpen(Session session) {
-		System.out.println(session.getId() + " has opened a connection");
-		try {
-			session.getBasicRemote().sendText("Connection Established");
-		} catch (IOException ex) {
-			ex.printStackTrace();
-		}
+		this.sessionHandler.addSession(session);
 	}
 
 	@OnMessage
 	public void onMessage(String message, Session session) {
-		System.out.println("Message from " + session.getId() + ": " + message);
-		try {
-			session.getBasicRemote().sendText(message);
-		} catch (IOException ex) {
-			ex.printStackTrace();
-		}
+		JSONObject jsonMessage = new JSONObject(message);
+		if ("signin".equals(jsonMessage.getString("action"))) {
+			Person person = new Person();
+			person.setId(session.getId());
+			person.setNickname(jsonMessage.getString("nickName"));
+            this.sessionHandler.addPerson(person);
+        }
+
+        if ("signout".equals(jsonMessage.getString("action"))) {
+            String id = jsonMessage.getString("id");
+            this.sessionHandler.removePerson(id);
+        }
+        
+        if ("message".equals(jsonMessage.getString("action"))) {
+            String content = jsonMessage.getString("message");
+            String id = jsonMessage.getString("id");
+            this.sessionHandler.addMessage(id, content);
+        }
 	}
 
 	@OnClose
 	public void onClose(Session session) {
-		System.out.println("Session " + session.getId() + " has ended");
+		this.sessionHandler.removeSession(session);
 	}
 	
 	@OnError
